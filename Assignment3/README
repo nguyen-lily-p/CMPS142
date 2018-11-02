@@ -4,10 +4,34 @@ CMPS 142
 
 Assignment 3, Problem 2: Implementing KNN
 
-Problem Description:
+
+#### PROBLEM DESCRIPTION: ####
+
 Implement the KNN algorithm in Python and submit your code.
 Your code must handle the following parameters to be defined as input:
     - K
     - different distance measures: L1, L2, or Linf
 Your code should run using the following command:
     $ python <YourCodeName>.py --K <integer value> --method <L1, L2, or Linf>
+
+
+
+#### THOUGHTS: ####
+
+- The overall process will run like this:
+    1. read/set parameters from command line option arguments
+    2. read in/store all training data
+    3. read testing data; for every test instance:
+        - look through training data to find the k nearest neighbors
+	- predict label for the test instance
+	- check if prediction is correct
+
+- what's the best way to store all of the training data? (i.e. data structure)
+    - does this depend on the distance measure we're using?
+    - does this depend on the number of dimensions of the data?
+
+- output:
+    - prediction label for every test instance
+    - actual label for every test instance
+    - statistics: accuracy
+    - list of the k nearest neighbors for each test instance?

@@ -25,6 +25,8 @@ def main():
     if not k_flag or not method_flag:
         sys.exit(2)
 
+    # validate option arguments
     print (opts)
+    print (args)
 
 main()

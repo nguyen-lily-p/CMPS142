@@ -1,0 +1,13 @@
+Lily Nguyen
+CMPS 142
+02 November 2018
+
+Assignment 3, Problem 2: Implementing KNN
+
+Problem Description:
+Implement the KNN algorithm in Python and submit your code.
+Your code must handle the following parameters to be defined as input:
+    - K
+    - different distance measures: L1, L2, or Linf
+Your code should run using the following command:
+    $ python <YourCodeName>.py --K <integer value> --method <L1, L2, or Linf>

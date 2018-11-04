@@ -2,7 +2,6 @@ import sys, getopt, pandas
 
 # TODO: create function to compare first test instance vs first training instance
 
-
 # file path for training data
 TRAINING_DATA_PATH = "knn_train.csv"
 # file path for test data
@@ -46,8 +45,8 @@ def get_options():
             elif (opt[1]).upper() == "LINF":
                 l_val = 0
             else:
-                print("Error: Argument value for '--method' must be either L1, \
-                        L2, or Linf")
+                print("Error: Argument value for '--method' must be either L1, "
+                        "L2, or Linf")
                 sys.exit(2)
             method_flag = True
 
@@ -111,40 +110,40 @@ def get_neighbors(test_instance, training_df, k_val, l_val):
     return neighbors
 
 
-def get_distance_L2(test_instance, training_instance, length):
+def get_distance_L2(test_instance, training_instance, dimension):
     """
         Calculates and returns the L2 distance between the test_instance and 
             the training_instance
         length is the number of dimensions the points
     """
     dist = 0
-    for i in range(1, length):
+    for i in range(1, dimension):
         dist += (test_instance[i] - training_instance[i]) ** 2
 
     return dist
 
 
-def get_distance_L1(test_instance, training_instance, length):
+def get_distance_L1(test_instance, training_instance, dimension):
     """
         Calculates and returns the L1 distance between the test_instance and 
             training_instance
-        length is the number of dimensions of the points
+        dimension is the number of dimensions of the points
     """
     dist = 0
-    for i in range(1, length):
+    for i in range(1, dimension):
         dist += abs(test_instance[i] - training_instance[i])
 
     return dist
 
 
-def get_distance_Linf(test_instance, training_instance, length):
+def get_distance_Linf(test_instance, training_instance, dimension):
     """
         Calculates and returns the L-inf (max norm) distance between the test_instance 
             and training_instance
-        length is the number of dimensions of the points
+        dimension is the number of dimensions of the points
     """
     dist_list = []
-    for i in range(1, length):
+    for i in range(1, dimension):
         dist_list.append(abs(test_instance[i] - training_instance[i]))
 
     return max(dist_list)
@@ -193,6 +192,29 @@ def get_stats(tp, tn, fp, fn):
         (2 * precision * recall)/(precision + recall) * 100))
 
 
+def get_dist_first_inst(test_inst, training_inst, dimension):
+    """
+       Calculates the distance between the first instances of the training data
+           set and the testing data set.
+    """
+    #print (test_inst.iloc[0])
+    #print (training_inst.iloc[0])
+    #print (dimension)
+
+    print("\nL2 Distance Between First Training Instance and First Test "
+            "Instance:")
+    print(get_distance_L2(test_inst, training_inst, dimension))
+    
+
+    print ("L1 Distance Between First Training Instance and First Test "
+            "Instance:")
+    print(get_distance_L1(test_inst, training_inst, dimension))
+
+    print ("Linf Distance Between First Training Instance and First Test "
+            "Instance:")
+    print(get_distance_Linf(test_inst, training_inst, dimension))
+
+
 def main():
 
     k_val, l_val = get_options()
@@ -232,5 +254,8 @@ def main():
 
     # print stats
     get_stats(true_pos, true_neg, false_pos, false_neg)
+
+    # print distances between first instances
+    get_dist_first_inst(test_df.iloc[0], training_df.iloc[0], len(training_df.columns))
 
 main()

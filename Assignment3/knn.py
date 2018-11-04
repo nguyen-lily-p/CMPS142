@@ -1,6 +1,5 @@
 import sys, getopt, pandas
 
-# TODO: create stats function (recall, precision, f-measure)
 # TODO: create function to compare first test instance vs first training instance
 
 
@@ -18,7 +17,8 @@ def get_options():
     """
     # read in command line options/arguments
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["K=", "k=", "Method=", "method="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["K=", "k=", "Method=", \
+            "method="])
     except getopt.GetoptError as opt_error:
         print("Error:", str(opt_error))
         sys.exit(2)
@@ -46,7 +46,8 @@ def get_options():
             elif (opt[1]).upper() == "LINF":
                 l_val = 0
             else:
-                print("Error: Argument value for '--method' must be either L1, L2, or Linf")
+                print("Error: Argument value for '--method' must be either L1, \
+                        L2, or Linf")
                 sys.exit(2)
             method_flag = True
 
@@ -112,7 +113,8 @@ def get_neighbors(test_instance, training_df, k_val, l_val):
 
 def get_distance_L2(test_instance, training_instance, length):
     """
-        Calculates and returns the L2 distance between the test_instance and the training_instance
+        Calculates and returns the L2 distance between the test_instance and 
+            the training_instance
         length is the number of dimensions the points
     """
     dist = 0
@@ -124,7 +126,8 @@ def get_distance_L2(test_instance, training_instance, length):
 
 def get_distance_L1(test_instance, training_instance, length):
     """
-        Calculates and returns the L1 distance between the test_instance and training_instance
+        Calculates and returns the L1 distance between the test_instance and 
+            training_instance
         length is the number of dimensions of the points
     """
     dist = 0
@@ -136,7 +139,8 @@ def get_distance_L1(test_instance, training_instance, length):
 
 def get_distance_Linf(test_instance, training_instance, length):
     """
-        Calculates and returns the L-inf (max norm) distance between the test_instance and training_instance
+        Calculates and returns the L-inf (max norm) distance between the test_instance 
+            and training_instance
         length is the number of dimensions of the points
     """
     dist_list = []
@@ -163,6 +167,32 @@ def get_prediction(neighbors):
         return 0
 
 
+def get_stats(tp, tn, fp, fn):
+    """
+        Calculates and prints the performance statisics:
+        confusion matrix, accuracy, precision, recall, and f-measure
+    """
+
+    print ("\nCONFUSION MATRIX")
+    print ("TP:{0:4d}| FP:{1:4d}".format(tp, fp))
+    print ("FN:{0:4d}| FP:{1:4d}\n".format(fn, tn))
+
+    print ("{0:9s}: {1:5d}/{2:5d} = {3:f}%".format("ACCURACY", tp + tn, 
+        tp + tn + fp + fn, (tp + tn)/(tp + tn + fp + fn) * 100))
+
+    precision = tp / (tp + fp)
+    print ("{0:9s}: {1:5d}/{2:5d} = {3:f}%".format("PRECISION", tp, tp + fp, 
+        precision * 100))
+
+    recall = tp / (tp + fn)
+    print ("{0:9s}: {1:5d}/{2:5d} = {3:f}%".format("RECALL", tp, tp + fn, 
+        recall * 100))
+
+    print ("{0:9s}: {1:.3f}/{2:.3f} = {3:f}%".format("F-MEASURE", 
+        2 * precision * recall, precision + recall, 
+        (2 * precision * recall)/(precision + recall) * 100))
+
+
 def main():
 
     k_val, l_val = get_options()
@@ -170,20 +200,37 @@ def main():
     training_df = read_data(TRAINING_DATA_PATH)
     test_df = read_data(TESTING_DATA_PATH)
 
+    true_pos = 0
+    true_neg = 0
+    false_pos = 0
+    false_neg = 0
 
-    # run through test data
-    correct_pred = 0
     print("\nTEST INSTANCE |")
+    
+    # run through test data
     for instance in test_df.itertuples(True, None):
         neighbors = get_neighbors(instance, training_df, k_val, l_val)
         prediction = get_prediction(neighbors)
-        if prediction == instance[len(test_df.columns)]:
-            correct_pred += 1
-        print("{0:13d} | {1:36s} | {2:s}".format(instance[0], "KNN (Instance Num, Dist, Label)", str(neighbors)))
+
+        if prediction > 0:
+            if prediction == instance[len(test_df.columns)]:
+                true_pos += 1
+            else:
+                false_pos += 1
+        elif prediction < 0:
+            if prediction == instance[len(test_df.columns)]:
+                true_neg += 1
+            else:
+                false_neg += 1
+
+
+        print("{0:13d} | {1:36s} | {2:s}".format(instance[0], 
+            "KNN (Instance Num, Dist, Label)", str(neighbors)))
         print("{0:13s} | {1:36s} | {2:d}".format(" ", "Prediction", prediction))
-        print("{0:13s} | {1:36s} | {2:d}".format(" ", "Actual", instance[len(test_df.columns)]))
+        print("{0:13s} | {1:36s} | {2:d}".format(" ", "Actual", 
+            instance[len(test_df.columns)]))
 
     # print stats
-    print("\nAccuracy: {0:d}/{1:d} = {2:f}%".format(correct_pred, len(test_df.index), (correct_pred/len(test_df.index))))
+    get_stats(true_pos, true_neg, false_pos, false_neg)
 
 main()

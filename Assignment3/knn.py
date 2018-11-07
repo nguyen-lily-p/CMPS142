@@ -1,4 +1,4 @@
-import sys, getopt, pandas
+import sys, getopt, pandas, math
 
 # TODO: create function to compare first test instance vs first training instance
 
@@ -120,7 +120,7 @@ def get_distance_L2(test_instance, training_instance, dimension):
     for i in range(1, dimension):
         dist += (test_instance[i] - training_instance[i]) ** 2
 
-    return dist
+    return math.sqrt(dist)
 
 
 def get_distance_L1(test_instance, training_instance, dimension):

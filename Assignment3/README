@@ -1,6 +1,8 @@
-Lily Nguyen
+Brianna Atayan * 1596857 * batayan@ucsc.edu
+Colin Maher    * 1432169 * csmaher@ucsc.edu
+Lily Nguyen    * 1596857 * lnguye78@ucsc.edu
 CMPS 142
-02 November 2018
+08 November 2018
 
 Assignment 3, Problem 2: Implementing KNN
 
@@ -15,23 +17,40 @@ Your code should run using the following command:
     $ python <YourCodeName>.py --K <integer value> --method <L1, L2, or Linf>
 
 
+#### PROGRAM DESCRIPTION: ####
 
-#### THOUGHTS: ####
+This program implements the KNN algorithm to classify given test instances. The program process is as follows:
+	1. It reads in the command line options and sets the parameters accordingly. 
+	2. It reads in and stores the given training data set (using the pandas library and the pandas dataframe).
+	3. It reads and runs through the test data:
+		a. It calculates the distance from the test instance to every training instance.
+		b. It obtains the K nearest neighbors of the test instance.
+		c. Using the K nearest neighbors, it uses a voting system, based on labels being either -1 or 1, to predict a label for the current test instance.
+	4. It prints the results.
 
-- The overall process will run like this:
-    1. read/set parameters from command line option arguments
-    2. read in/store all training data
-    3. read testing data; for every test instance:
-        - look through training data to find the k nearest neighbors
-	- predict label for the test instance
-	- check if prediction is correct
-
-- what's the best way to store all of the training data? (i.e. data structure)
-    - does this depend on the distance measure we're using?
-    - does this depend on the number of dimensions of the data?
-
-- output:
-    - prediction label for every test instance
-    - actual label for every test instance
-    - statistics: accuracy
-    - list of the k nearest neighbors for each test instance?
+The program can be run with different parameters:
+	- K: a positive, integer value specifying the number of nearest neighbors 
+	     to consider during classification; must be specified from the command line
+		 using the "--K" option
+		 * Note: program may not classify correctly if K is an even value, because of
+		   tie votes; for best results, use an odd value for K
+	- distance measure: must be specified from the command line using the "--method"
+	    option; must be one of the following values:
+		    - "L1": calculates the nearest neighbors using L1 distance formula
+			- "L2": calculates the nearest neighbors using L2 (Euclidean distance formula
+			- "Linf": calculates the nearest neighbors using L-infinity (max norm) distance formula
+			
+The program uses the pandas library and the pandas dataframe to read in and manipulate
+    the data.
+The file paths to the training data set and the testing data set can be changed using
+    the global constants at the beginning of the program file.
+	
+The program prints the following information:
+    - for each instance in the test data set:
+	    - the instance number
+		- a list of the nearest neighbors, with each neighbor specified as (instance number, distance from test instance, label)
+		- predicted label
+		- actual label
+	- confusion matrix
+	- performance statistics: accuracy, precision, recall, f-measure
+	- the L1, L2, and Linf distance between the first instances of the training data set and the testing data set

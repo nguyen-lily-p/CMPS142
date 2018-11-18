@@ -1,6 +1,8 @@
-import sys, getopt, pandas, math
+# Brianna Atayan 1632743 (batayan@ucsc.edu)
+# Colin Maher    1432169 (csmaher@ucsc.edu
+# Lily Nguyen    1596857 (lnguye78@ucsc.edu)
 
-# TODO: create function to compare first test instance vs first training instance
+import sys, getopt, pandas, math
 
 # file path for training data
 TRAINING_DATA_PATH = "knn_train.csv"
@@ -91,7 +93,7 @@ def get_neighbors(test_instance, training_df, k_val, l_val):
     neighbors = [(-1, float("inf"), 0)] * k_val
 
     for row in training_df.itertuples():
-        dist = 0
+        dist = 0.0
 
         # calculate distance
         if l_val == 2:
@@ -104,7 +106,7 @@ def get_neighbors(test_instance, training_df, k_val, l_val):
         # update list of neighbors, if necessary
         if dist <  (neighbors[len(neighbors) - 1])[1]:
             neighbors.pop()
-            neighbors.append((row[0], dist, row[len(training_df.columns)]))
+            neighbors.append((row[0], round(dist, 3), row[len(training_df.columns)]))
             neighbors.sort(key=lambda x: x[1])
     
     return neighbors
@@ -197,22 +199,18 @@ def get_dist_first_inst(test_inst, training_inst, dimension):
        Calculates the distance between the first instances of the training data
            set and the testing data set.
     """
-    #print (test_inst.iloc[0])
-    #print (training_inst.iloc[0])
-    #print (dimension)
-
     print("\nL2 Distance Between First Training Instance and First Test "
             "Instance:")
-    print(get_distance_L2(test_inst, training_inst, dimension))
+    print(round(get_distance_L2(test_inst, training_inst, dimension), 3))
     
 
     print ("L1 Distance Between First Training Instance and First Test "
             "Instance:")
-    print(get_distance_L1(test_inst, training_inst, dimension))
+    print(round(get_distance_L1(test_inst, training_inst, dimension), 3))
 
     print ("Linf Distance Between First Training Instance and First Test "
             "Instance:")
-    print(get_distance_Linf(test_inst, training_inst, dimension))
+    print(round(get_distance_Linf(test_inst, training_inst, dimension), 3))
 
 
 def main():

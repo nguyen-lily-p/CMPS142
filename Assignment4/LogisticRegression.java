@@ -1,4 +1,4 @@
-package cmps142_hw4;
+ package cmps142_hw4;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,10 +19,17 @@ public class LogisticRegression {
 
         /** TODO: Constructor initializes the weight vector. Initialize it by setting it to the 0 vector. **/
         public LogisticRegression(int n) { // n is the number of weights to be learned
+            weights = new double[n]; // note: Java by default populates an array of doubles with 0.0 on initialization
+            Arrays.fill(weights, 0.0);
         }
 
         /** TODO: Implement the function that returns the L2 norm of the weight vector **/
         private double weightsL2Norm(){
+            double sum = 0.0;
+            for (double weight : weights)
+                sum += weight * weight;
+
+            return Math.sqrt(sum);
         }
 
         /** TODO: Implement the sigmoid function **/
@@ -49,6 +56,31 @@ public class LogisticRegression {
             int TP=0, TN=0, FP=0, FN=0; // TP = True Positives, TN = True Negatives, FP = False Positives, FN = False Negatives
 
             // TODO: write code here to compute the above mentioned variables
+            // loop through test set to calculate TP, TN, FP, and FN
+            for (LRInstance instance : testInstances) {
+                int prediction = predict(instance.x);
+                if (prediction == instance.label) {
+                    if (instance.label > 0)
+                        TP++;
+                    else
+                        TN++;
+                }
+                else {
+                    if (instance.label > 0)
+                        FN++;
+                    else
+                        FP++;
+                }
+            }
+
+            // calculate the performance variables
+            acc = (TP + TN)/(TP + TN + FP + FN);
+            p_pos = TP / (TP + FP);
+            r_pos = TP / (TP + FN);
+            f_pos = (2 * p_pos * r_pos) / (p_pos + r_pos);
+            p_neg = TN / (TN + FN);
+            r_neg = TN / (TN + FP);
+            f_neg = (2 * p_neg * r_neg) / (p_neg + r_neg);
 
             System.out.println("Accuracy="+acc);
             System.out.println("P, R, and F1 score of the positive class=" + p_pos + " " + r_pos + " " + f_pos);
@@ -79,6 +111,10 @@ public class LogisticRegression {
 
             /** TODO: Constructor for initializing the Instance object **/
             public LRInstance(int label, double[] x) {
+                this.label = label;
+                for (int i = 0; i < x.length; i++) {
+                    this.x[i] = x[i];
+                }
             }
         }
 

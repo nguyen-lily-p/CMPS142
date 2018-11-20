@@ -1,4 +1,4 @@
- package cmps142_hw4;
+ //package cmps142_hw4;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,7 +20,6 @@ public class LogisticRegression {
         /** TODO: Constructor initializes the weight vector. Initialize it by setting it to the 0 vector. **/
         public LogisticRegression(int n) { // n is the number of weights to be learned
             weights = new double[n]; // note: Java by default populates an array of doubles with 0.0 on initialization
-            Arrays.fill(weights, 0.0);
         }
 
         /** TODO: Implement the function that returns the L2 norm of the weight vector **/
@@ -34,18 +33,28 @@ public class LogisticRegression {
 
         /** TODO: Implement the sigmoid function **/
         private static double sigmoid(double z) {
+            return 1 / (1 + Math.exp(-z));
         }
 
         /** TODO: Helper function for prediction **/
         /** Takes a test instance as input and outputs the probability of the label being 1 **/
         /** This function should call sigmoid() **/
         private double probPred1(double[] x) {
+            double sumWX = 0.0;
+            for (int i = 0; i < x.length; i++) {
+                sumWX += weights[i] * x[i];
+            }
+            return sigmoid(sumWX);
         }
 
         /** TODO: The prediction function **/
         /** Takes a test instance as input and outputs the predicted label **/
         /** This function should call probPred1() **/
         public int predict(double[] x) {
+            if (probPred1(x) >= 0.5)
+                return 1;
+            else
+                return 0;
         }
 
         /** This function takes a test set as input, call the predict() to predict a label for it, and prints the accuracy, P, R, and F1 score of the positive class and negative class and the confusion matrix **/
@@ -74,13 +83,13 @@ public class LogisticRegression {
             }
 
             // calculate the performance variables
-            acc = (TP + TN)/(TP + TN + FP + FN);
-            p_pos = TP / (TP + FP);
-            r_pos = TP / (TP + FN);
-            f_pos = (2 * p_pos * r_pos) / (p_pos + r_pos);
-            p_neg = TN / (TN + FN);
-            r_neg = TN / (TN + FP);
-            f_neg = (2 * p_neg * r_neg) / (p_neg + r_neg);
+            acc = (double)(TP + TN) / (TP + TN + FP + FN);
+            p_pos = (double)TP / (TP + FP);
+            r_pos = (double)TP / (TP + FN);
+            f_pos = 2.0 * p_pos * r_pos / (p_pos + r_pos);
+            p_neg = (double)TN / (TN + FN);
+            r_neg = (double)TN / (TN + FP);
+            f_neg = 2.0 * p_neg * r_neg / (p_neg + r_neg);
 
             System.out.println("Accuracy="+acc);
             System.out.println("P, R, and F1 score of the positive class=" + p_pos + " " + r_pos + " " + f_pos);
@@ -98,8 +107,19 @@ public class LogisticRegression {
                 double lik = 0.0; // Stores log-likelihood of the training data for this iteration
                 for (int i=0; i < instances.size(); i++) {
                     // TODO: Train the model
+                    double sumWX = 0.0;
+                    int instLabel = instances.get(i).label;
+                    double probLabel1 = probPred1(instances.get(i).x);
 
+                    // update weights in weight vector
+                    for (int j = 0; j < instances.get(i).x.length; j++) {
+                        double featVal = instances.get(i).x[j];
+
+                        weights[j] += rate * featVal * (instLabel - probLabel1);
+                        sumWX += weights[j] * featVal;
+                    }
                     // TODO: Compute the log-likelihood of the data here. Remember to take logs when necessary
+                    lik += instLabel * sumWX - Math.log(1 + Math.exp(sumWX));
 				}
                 System.out.println("iteration: " + n + " lik: " + lik);
             }
@@ -112,6 +132,9 @@ public class LogisticRegression {
             /** TODO: Constructor for initializing the Instance object **/
             public LRInstance(int label, double[] x) {
                 this.label = label;
+
+                this.x = x;
+                this.x = new double[x.length];
                 for (int i = 0; i < x.length; i++) {
                     this.x[i] = x[i];
                 }

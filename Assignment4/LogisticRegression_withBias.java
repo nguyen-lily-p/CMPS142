@@ -20,9 +20,6 @@ public class LogisticRegression_withBias {
         /** TODO: Constructor initializes the weight vector. Initialize it by setting it to the 0 vector. **/
         public LogisticRegression_withBias(int n) { // n is the number of weights to be learned
             weights = new double[n]; // note: Java by default populates an array of doubles with 0.0 on initialization
-            /*for (int i = 0; i < n; i++) {
-                weights[i] = 0.0;
-            }*/
         }
 
         /** TODO: Implement the function that returns the L2 norm of the weight vector **/
@@ -117,7 +114,7 @@ public class LogisticRegression_withBias {
                     // update weights in weight vector
                     for (int j = 0; j < instances.get(i).x.length; j++) {
                         double featVal = instances.get(i).x[j];
-
+                        // stochastic gradient ascent
                         weights[j] += rate * featVal * (instLabel - probLabel1);
                         sumWX += weights[j] * featVal;
                     }

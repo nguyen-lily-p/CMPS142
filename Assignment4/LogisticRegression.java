@@ -114,7 +114,7 @@ public class LogisticRegression {
                     // update weights in weight vector
                     for (int j = 0; j < instances.get(i).x.length; j++) {
                         double featVal = instances.get(i).x[j];
-
+                        // stochastic gradient ascent
                         weights[j] += rate * featVal * (instLabel - probLabel1);
                         sumWX += weights[j] * featVal;
                     }
@@ -132,12 +132,7 @@ public class LogisticRegression {
             /** TODO: Constructor for initializing the Instance object **/
             public LRInstance(int label, double[] x) {
                 this.label = label;
-
                 this.x = x;
-                this.x = new double[x.length];
-                for (int i = 0; i < x.length; i++) {
-                    this.x[i] = x[i];
-                }
             }
         }
 

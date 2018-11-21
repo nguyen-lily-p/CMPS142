@@ -1,0 +1,40 @@
+Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
+Brianna Atayan - 1632743 - batayan@ucsc.edu
+Colin Maher    - 1432169 - csmaher@ucsc.edu
+
+CMPS 142
+20 November 2018
+
+Assignment 4: Implementing Logistic Regression
+
+***** 1.1: Logistic Regression *****
+
+LogisticRegression.java
+
+In this program, we have implemented vanilla Logistic Regression.
+We were given the training file and the starter code, and we filled in the
+sections marked with TODO's.
+This program can be run by compiling the .java file and then running the Java 
+    interpreter.
+
+
+***** 1.2: Logistic Regression with Bias *****
+
+LogisticRegression_withBias.java
+
+In this program, we have implemented Logistic Regression with a bias term.
+We were given the training file and starter code, and we filled in the sections
+    marked with TODO's.
+This program can be run by compiling the .java file and then running the Java
+    interpreter.
+
+
+***** 1.3: Logistic Regression with Regularization *****
+
+LogisticRegression_withRegularization.java
+
+In this program, we have implemented Logistic Regression with L2 regularization.
+We were given the training and testing files and starter code, and we filled in
+    the sections marked with TODO's.
+This program can be run by compiling the .java file and then running the Java
+    interpreter.

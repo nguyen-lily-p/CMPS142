@@ -13,7 +13,7 @@ OUTPUT_PATH = "output.csv"
 
 
 def main():
-    # read in training data
+    # read in command-line arguments, if any
     parser = argparse.ArgumentParser(description="program description")
     parser.add_argument("--test", dest = "testFile", default = TESTING_DATA_PATH, \
             type = str, help = "the path to the .csv file containing the test data")
@@ -21,6 +21,8 @@ def main():
             type = str, help = "the path of the output file")
     args = parser.parse_args()
     print(args.testFile)
+
+    # read in training data
 
     # preprocessing
 

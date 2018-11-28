@@ -42,8 +42,11 @@ def main():
 
 
     # preprocessing
-
-
+        # split into words (nltk word_tokenize())
+        # filter out punctuation
+        # filter out stopwords (?)
+        # stem words (nltk stem())
+    
     # feature extraction
 
 

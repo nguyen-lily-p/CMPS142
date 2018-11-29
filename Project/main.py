@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, nltk, preprocessing
+import argparse, pandas, sys, nltk, string
 #nltk.download()
 
 # default file path for training data
@@ -13,9 +13,27 @@ TESTING_DATA_PATH = "test.csv"
 OUTPUT_PATH = "output.csv"
 
 def preprocess(phrase_df):
-    phrase_df = phrase_df.str.lower()
-    phrase_df = phrase_df.str.strip()
-    phrase_df = phrase_df.str.split(' ')
+    phrase_df = phrase_df.str.lower() # convert strings to lowercase
+    phrase_df = phrase_df.str.strip() # remove leading/trailing whitespace
+    phrase_df = phrase_df.str.split(' ') # tokenize into words
+    
+    mapping = str.maketrans('', '', string.punctuation)
+    stop_words = set(nltk.corpus.stopwords.words('english'))
+    
+    for i in range(1, phrase_df.size + 1):
+        # remove punctuation from tokens
+        phrase_df[i] = [token.translate(mapping) for token in phrase_df[i]]
+        # remove non-alphabetic tokens
+        phrase_df[i] = [token for token in phrase_df[i] if token.isalpha()]
+        # remove stop-words
+        phrase_df[i] = [token for token in phrase_df[i] \
+                if not token in stop_words]
+        # stem the words
+        phrase_df[i] = [nltk.stem.porter.PorterStemmer().stem(token) \
+                for token in phrase_df[i]]
+
+    # need to remove empty lists (i.e. no tokens left in the phrase)
+
     return phrase_df
 
 
@@ -56,11 +74,6 @@ def main():
     
     print("Phrase data after preprocessing")
     print(train_data_df["Phrase"])
-        # convert all to lowercase
-        # split into words (tokenize)
-        # filter out punctuation
-        # filter out stopwords (?)
-        # stem words (nltk stem())
     
     # feature extraction
 

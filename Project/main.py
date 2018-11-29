@@ -2,7 +2,8 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys
+import argparse, pandas, sys, nltk, preprocessing
+#nltk.download()
 
 # default file path for training data
 TRAINING_DATA_PATH = "train.csv"
@@ -10,6 +11,12 @@ TRAINING_DATA_PATH = "train.csv"
 TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
+
+def preprocess(phrase_df):
+    phrase_df = phrase_df.str.lower()
+    phrase_df = phrase_df.str.strip()
+    phrase_df = phrase_df.str.split(' ')
+    return phrase_df
 
 
 def main():
@@ -42,7 +49,15 @@ def main():
 
 
     # preprocessing
-        # split into words (nltk word_tokenize())
+    print("Phrase data before preprocessing")
+    print(train_data_df["Phrase"])
+
+    train_data_df["Phrase"] = preprocess(train_data_df["Phrase"])
+    
+    print("Phrase data after preprocessing")
+    print(train_data_df["Phrase"])
+        # convert all to lowercase
+        # split into words (tokenize)
         # filter out punctuation
         # filter out stopwords (?)
         # stem words (nltk stem())

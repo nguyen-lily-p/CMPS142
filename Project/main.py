@@ -20,7 +20,7 @@ def preprocess(phrase_df):
     mapping = str.maketrans('', '', string.punctuation)
     stop_words = set(nltk.corpus.stopwords.words('english'))
     
-    for i in range(1, phrase_df.size + 1):
+    for i in range(0, phrase_df.size ):
         # remove punctuation from tokens
         phrase_df[i] = [token.translate(mapping) for token in phrase_df[i]]
         # remove non-alphabetic tokens
@@ -31,8 +31,6 @@ def preprocess(phrase_df):
         # stem the words
         phrase_df[i] = [nltk.stem.porter.PorterStemmer().stem(token) \
                 for token in phrase_df[i]]
-
-    # need to remove empty lists (i.e. no tokens left in the phrase)
 
     return phrase_df
 
@@ -62,19 +60,25 @@ def main():
         print("Error: Unknown error occurred trying to read train data file")
         sys.exit(1)
 
-    # make indexing start at 1
-    train_data_df.index = train_data_df.index + 1
-
 
     # preprocessing
-    print("Phrase data before preprocessing")
+    print("\n***PHRASE DATA BEFORE PREPROCESSING***")
     print(train_data_df["Phrase"])
 
     train_data_df["Phrase"] = preprocess(train_data_df["Phrase"])
-    
-    print("Phrase data after preprocessing")
+
+    # remove instances with empty phrase list after preprocessing
+    index = 0
+    while index < len(train_data_df.index):
+        if not train_data_df["Phrase"].iloc[index]:
+            train_data_df = train_data_df.drop(train_data_df.index[index])
+
+        index += 1
+
+    print("\n***PHRASE DATA AFTER PREPROCESSING***")
     print(train_data_df["Phrase"])
-    
+
+
     # feature extraction
 
 

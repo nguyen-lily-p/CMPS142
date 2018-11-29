@@ -11,6 +11,19 @@ TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
 
+# import scikit-learn functions
+from sklearn.naive_bayes import MultinomialNB
+
+# import nltk functions
+import nltk.classify.naivebayes
+
+# trains multiple classifiers with training set, returns accuracy of each algorithm
+def trainClassifiers(trainingSet):
+    # trains NB classifier on given training set, prints accuracy
+    naiveBayesClassifier = NaiveBayesClassifier.train(trainingSet)
+    accuracy = nltk.classify.util.accuracy(classifier, trainingSet)
+    print("Training Accuracy of Naive Bayes: " + (accuracy * 100))
+    
 
 def main():
     # read in training data

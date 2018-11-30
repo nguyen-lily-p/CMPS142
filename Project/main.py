@@ -2,7 +2,14 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, nltk, string, numpy
+import argparse, pandas, sys, string, numpy
+from nltk.stem.porter import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+# import scikit-learn functions for classifiers
+from sklearn.ensemble import VotingClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 #nltk.download()
 
 # default file path for training data
@@ -11,12 +18,6 @@ TRAINING_DATA_PATH = "train.csv"
 TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
-
-# import scikit-learn functions for classifiers
-from sklearn.ensemble import VotingClassifier
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression
 
 # declares classifies that will be trained and used for testing
 # global so all functions can access
@@ -38,32 +39,27 @@ def trainClassifiers():
     y = numpy.array([1, 1, 1, 2, 2, 2])
     classArr = classArr.fit(x, y)
     print(classArr.predict(x))
-    
-    
-def preprocess(phrase_df):
-    phrase_df = phrase_df.str.lower() # convert strings to lowercase
-    phrase_df = phrase_df.str.strip() # remove leading/trailing whitespace
-    phrase_df = phrase_df.str.split(' ') # tokenize into words
-    
-    mapping = str.maketrans('', '', string.punctuation)
-    stop_words = set(nltk.corpus.stopwords.words('english'))
-    
-    for i in range(0, phrase_df.size ):
-        # remove punctuation from tokens
-        phrase_df[i] = [token.translate(mapping) for token in phrase_df[i]]
-        # remove non-alphabetic tokens
-        phrase_df[i] = [token for token in phrase_df[i] if token.isalpha()]
-        # remove stop-words
-        phrase_df[i] = [token for token in phrase_df[i] \
-                if not token in stop_words]
-        # stem the words
-        phrase_df[i] = [nltk.stem.porter.PorterStemmer().stem(token) \
-                for token in phrase_df[i]]
 
-    return phrase_df
+    
+def tokenize(phrase_str):
+    """
+        Performs tokenization and some preprocessing operations on text data.
+        Converts a phrase into a list of words, removes punctuation, removes
+            non-alphabetic tokens, and stems the tokens
+        Returns the list of tokens
+    """
+    phrase = phrase_str.split(' ') # tokenize string by space character
+
+    mapping = str.maketrans('', '', string.punctuation)
+
+    # remove punctuation, remove non-alphabetic tokens, stem tokens
+    phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
+            if token.translate(mapping).isalpha()]
+
+    return phrase
 
 def main():
-    # read in command-line arguments, if any
+    #### read in command-line arguments, if any ####
     parser = argparse.ArgumentParser(description = "program to predict the "
             "sentiment of a given phrase")
     parser.add_argument("--train", dest = "trainFile", \
@@ -77,7 +73,7 @@ def main():
     args = parser.parse_args()
 
 
-    # read training data into a pandas dataframe
+    #### read training data into a pandas dataframe ####
     try:
         train_data_df = pandas.read_csv(args.trainFile)
     except FileNotFoundError:
@@ -88,25 +84,30 @@ def main():
         sys.exit(1)
 
 
-    # preprocessing
-    print("\n***PHRASE DATA BEFORE PREPROCESSING***")
-    print(train_data_df["Phrase"])
+    #### preprocessing & feature extraction ####
+    tfidf = TfidfVectorizer(tokenizer = tokenize, min_df = 1)
+    tfs = tfidf.fit_transform(train_data_df["Phrase"])
+    
 
-    train_data_df["Phrase"] = preprocess(train_data_df["Phrase"])
+    ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
+    # print nice version of sparse matrix
+    #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
+    #print(tfs)
+    #feature_names = tfidf.get_feature_names()
 
-    # remove instances with empty phrase list after preprocessing
-    index = 0
-    while index < len(train_data_df.index):
-        if not train_data_df["Phrase"].iloc[index]:
-            train_data_df = train_data_df.drop(train_data_df.index[index])
+    # print word and tfidf score for first 100 documents
+    #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
+    #for idx in range(0, 100):
+    #    feature_index = tfs[idx,:].nonzero()[1]
+    #    tfidf_scores = zip(feature_index, [tfs[idx, x] for x in feature_index])
 
-        index += 1
+    #    print("\n*** DOCUMENT ", idx, " ***")
+    #    for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
+    #        print(w, " --- ", s)
 
-    print("\n***PHRASE DATA AFTER PREPROCESSING***")
-    print(train_data_df["Phrase"])
-
-
-    # feature extraction
+    # print (# of rows, # of columns) of matrix, i.e. (instances x features)
+    #print("\n(INSTANCES, FEATURES): ", tfs.shape)
+    ################################################################################
 
 
     # training - send to different algorithms

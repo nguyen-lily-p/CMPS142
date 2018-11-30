@@ -14,26 +14,6 @@ TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
 
-def preprocess(phrase_df):
-    """
-        Performs pre-processing operations on the text data.
-        Converts strings to all lowercase, tokenizes the strings into words, removes
-            punctuation, removes non-alphabetic tokens, stems the tokens.
-        Argument should be a pandas Series of strings
-        Returns the pre-processed text data as a Series of lists of strings
-    """
-    phrase_df = phrase_df.str.lower() # convert strings to lowercase
-    phrase_df = phrase_df.str.strip() # remove leading/trailing whitespace
-    phrase_df = phrase_df.str.split(' ') # tokenize into words
-    
-    mapping = str.maketrans('', '', string.punctuation)
-
-    # remove punctuation, remove non-alphabetic tokens, stem tokens
-    for i in range(0, phrase_df.size):
-        phrase_df[i] = [PorterStemmer().stem(token.translate(mapping)) \
-                for token in phrase_df[i] if token.translate(mapping).isalpha()]
-
-    return phrase_df
 
 def tokenize(phrase_str):
     """
@@ -79,40 +59,30 @@ def main():
         sys.exit(1)
 
 
-    #### preprocessing ####
-    #train_data_df["Phrase"] = preprocess(train_data_df["Phrase"])
-
-    # remove training instances with empty phrase list after preprocessing
-    #index = 0
-    #while index < len(train_data_df.index):
-    #    if not train_data_df["Phrase"].iloc[index]:
-    #        train_data_df = train_data_df.drop(train_data_df.index[index])
-
-    #    index += 1
-    #print(train_data_df["Phrase"])
-
-
-    #### feature extraction ####
+    #### preprocessing & feature extraction ####
     tfidf = TfidfVectorizer(tokenizer = tokenize, min_df = 1)
     tfs = tfidf.fit_transform(train_data_df["Phrase"])
     
+
+    ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
     # print nice version of sparse matrix
-    print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    print(tfs)
-    feature_names = tfidf.get_feature_names()
+    #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
+    #print(tfs)
+    #feature_names = tfidf.get_feature_names()
 
     # print word and tfidf score for first 100 documents
-    print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
-    for idx in range(0, 100):
-        feature_index = tfs[idx,:].nonzero()[1]
-        tfidf_scores = zip(feature_index, [tfs[idx, x] for x in feature_index])
+    #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
+    #for idx in range(0, 100):
+    #    feature_index = tfs[idx,:].nonzero()[1]
+    #    tfidf_scores = zip(feature_index, [tfs[idx, x] for x in feature_index])
 
-        print("\n*** DOCUMENT ", idx, " ***")
-        for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
-            print(w, " --- ", s)
+    #    print("\n*** DOCUMENT ", idx, " ***")
+    #    for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
+    #        print(w, " --- ", s)
 
     # print (# of rows, # of columns) of matrix, i.e. (instances x features)
-    print("\n(INSTANCES, FEATURES): ", tfs.shape)
+    #print("\n(INSTANCES, FEATURES): ", tfs.shape)
+    ################################################################################
 
 
     # training - send to different algorithms

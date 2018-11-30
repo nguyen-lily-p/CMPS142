@@ -2,9 +2,14 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, string
+import argparse, pandas, sys, string, numpy
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
+# import scikit-learn functions for classifiers
+from sklearn.ensemble import VotingClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 #nltk.download()
 
 # default file path for training data
@@ -14,7 +19,28 @@ TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
 
+# declares classifies that will be trained and used for testing
+# global so all functions can access
+naiveBayesModel = MultinomialNB()
+linearSVCModel = LinearSVC()
+logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1)
 
+# initializes array with previously declared classifiers to make voting simpler
+
+
+# trains multiple classifiers with training set, returns accuracy of each algorithm
+# parameter is matrix of occurences of keywords in each phrase
+def trainClassifiers():
+    # trains each classifier on given training set
+    classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
+            voting = 'hard')
+    # test values since feature extraction has not be written yet
+    x = numpy.array([[1, 2], [2, 1], [3, 2], [1, 1], [2, 1], [3, 2]])
+    y = numpy.array([1, 1, 1, 2, 2, 2])
+    classArr = classArr.fit(x, y)
+    print(classArr.predict(x))
+
+    
 def tokenize(phrase_str):
     """
         Performs tokenization and some preprocessing operations on text data.
@@ -31,7 +57,6 @@ def tokenize(phrase_str):
             if token.translate(mapping).isalpha()]
 
     return phrase
-
 
 def main():
     #### read in command-line arguments, if any ####
@@ -86,6 +111,7 @@ def main():
 
 
     # training - send to different algorithms
+    trainClassifiers()
 
 
     # test

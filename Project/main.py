@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, nltk, string
+import argparse, pandas, sys, nltk, string, numpy
 #nltk.download()
 
 # default file path for training data
@@ -12,18 +12,33 @@ TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
 
-# import scikit-learn functions
+# import scikit-learn functions for classifiers
+from sklearn.ensemble import VotingClassifier
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 
-# import nltk functions
-import nltk.classify.naivebayes
+# declares classifies that will be trained and used for testing
+# global so all functions can access
+naiveBayesModel = MultinomialNB()
+linearSVCModel = LinearSVC()
+logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1)
+
+# initializes array with previously declared classifiers to make voting simpler
+
 
 # trains multiple classifiers with training set, returns accuracy of each algorithm
-def trainClassifiers(trainingSet):
-    # trains NB classifier on given training set, prints accuracy
-    naiveBayesClassifier = NaiveBayesClassifier.train(trainingSet)
-    accuracy = nltk.classify.util.accuracy(classifier, trainingSet)
-    print("Training Accuracy of Naive Bayes: " + (accuracy * 100))
+# parameter is matrix of occurences of keywords in each phrase
+def trainClassifiers():
+    # trains each classifier on given training set
+    classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
+            voting = 'hard')
+    # test values since feature extraction has not be written yet
+    x = numpy.array([[1, 2], [2, 1], [3, 2], [1, 1], [2, 1], [3, 2]])
+    y = numpy.array([1, 1, 1, 2, 2, 2])
+    classArr = classArr.fit(x, y)
+    print(classArr.predict(x))
+    
     
 def preprocess(phrase_df):
     phrase_df = phrase_df.str.lower() # convert strings to lowercase
@@ -95,6 +110,7 @@ def main():
 
 
     # training - send to different algorithms
+    trainClassifiers()
 
 
     # test

@@ -30,15 +30,15 @@ logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', 
 
 # trains multiple classifiers with training set, returns accuracy of each algorithm
 # parameter is matrix of occurences of keywords in each phrase
-def trainClassifiers():
+def trainClassifiers(features, labels):
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
             voting = 'hard')
-    # test values since feature extraction has not be written yet
-    x = numpy.array([[1, 2], [2, 1], [3, 2], [1, 1], [2, 1], [3, 2]])
-    y = numpy.array([1, 1, 1, 2, 2, 2])
-    classArr = classArr.fit(x, y)
-    print(classArr.predict(x))
+    
+    classArr = classArr.fit(features, labels)
+    
+    #predictions = pandas.DataFrame({"Prediction": classArr.predict(features)})
+    #predictions.to_csv(path_or_buf = OUTPUT_PATH, index = False)
 
     
 def tokenize(phrase_str):
@@ -111,10 +111,11 @@ def main():
 
 
     # training - send to different algorithms
-    trainClassifiers()
-
+    trainClassifiers(tfs, train_data_df["Sentiment"].tolist())
+    
 
     # test
+
 
 if __name__ == '__main__':
     main()

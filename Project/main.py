@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, string, numpy
+import argparse, csv, pandas, sys, string, numpy, compare_models
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 # import scikit-learn functions for classifiers
@@ -37,8 +37,7 @@ def trainClassifiers(features, labels):
     
     classArr = classArr.fit(features, labels)
     
-    #predictions = pandas.DataFrame({"Prediction": classArr.predict(features)})
-    #predictions.to_csv(path_or_buf = OUTPUT_PATH, index = False)
+    return classArr
 
     
 def tokenize(phrase_str):
@@ -58,6 +57,7 @@ def tokenize(phrase_str):
 
     return phrase
 
+
 def main():
     #### read in command-line arguments, if any ####
     parser = argparse.ArgumentParser(description = "program to predict the "
@@ -73,9 +73,10 @@ def main():
     args = parser.parse_args()
 
 
-    #### read training data into a pandas dataframe ####
+    #### read training and testing data into a pandas dataframe ####
     try:
         train_data_df = pandas.read_csv(args.trainFile)
+        test_data_df = pandas.read_csv(args.testFile)
     except FileNotFoundError:
         print("Error: File does not exist. File must be of type csv")
         sys.exit(1)
@@ -84,38 +85,47 @@ def main():
         sys.exit(1)
 
 
+    #compare_models.compare_models(train_data_df)
     #### preprocessing & feature extraction ####
-    tfidf = TfidfVectorizer(tokenizer = tokenize, min_df = 1)
-    tfs = tfidf.fit_transform(train_data_df["Phrase"])
+    tfidf = TfidfVectorizer(tokenizer = tokenize)
+    train_feature_set = tfidf.fit_transform(train_data_df["Phrase"])
+    test_feature_set = tfidf.transform(test_data_df["Phrase"])
     
 
     ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
     # print nice version of sparse matrix
     #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    #print(tfs)
+    #print(feature_set)
     #feature_names = tfidf.get_feature_names()
 
     # print word and tfidf score for first 100 documents
     #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
     #for idx in range(0, 100):
-    #    feature_index = tfs[idx,:].nonzero()[1]
-    #    tfidf_scores = zip(feature_index, [tfs[idx, x] for x in feature_index])
+    #    feature_index = feature_set[idx,:].nonzero()[1]
+    #    tfidf_scores = zip(feature_index, [feature_set[idx, x] for x in feature_index])
 
     #    print("\n*** DOCUMENT ", idx, " ***")
     #    for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
     #        print(w, " --- ", s)
 
     # print (# of rows, # of columns) of matrix, i.e. (instances x features)
-    #print("\n(INSTANCES, FEATURES): ", tfs.shape)
+    #print("\n(INSTANCES, FEATURES): ", feature_set.shape)
     ################################################################################
 
 
     # training - send to different algorithms
-    trainClassifiers(tfs, train_data_df["Sentiment"].tolist())
-    
+    model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
+    print("\nInstances x Features): ", train_feature_set.shape)
+    print("\nInstances x Features): ", test_feature_set.shape)
+
 
     # test
-
+    predictions_df = pandas.DataFrame(model.predict(test_feature_set)) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
+    predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
+    print("Accuracy: ", model.score(test_feature_set, test_data_df["Sentiment"].tolist()))# REMOVE BEFORE SUBMISSION
+    
+    predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
+    
 
 if __name__ == '__main__':
     main()

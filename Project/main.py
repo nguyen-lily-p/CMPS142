@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, pandas, sys, string, numpy
+import argparse, csv, pandas, sys, string, numpy
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 # import scikit-learn functions for classifiers
@@ -39,6 +39,8 @@ def trainClassifiers(features, labels):
     
     #predictions = pandas.DataFrame({"Prediction": classArr.predict(features)})
     #predictions.to_csv(path_or_buf = OUTPUT_PATH, index = False)
+    
+    return classArr
 
     
 def tokenize(phrase_str):
@@ -86,7 +88,7 @@ def main():
 
     #### preprocessing & feature extraction ####
     tfidf = TfidfVectorizer(tokenizer = tokenize, min_df = 1)
-    tfs = tfidf.fit_transform(train_data_df["Phrase"])
+    feature_set = tfidf.fit_transform(train_data_df["Phrase"])
     
 
     ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
@@ -111,10 +113,17 @@ def main():
 
 
     # training - send to different algorithms
-    trainClassifiers(tfs, train_data_df["Sentiment"].tolist())
+    model = trainClassifiers(feature_set, train_data_df["Sentiment"].tolist())
     
 
+
     # test
+    predictions = model.predict(feature_set) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
+    with open(OUTPUT_PATH, mode="w") as out_file:
+        csv_writer = csv.writer(out_file, delimiter = ",", lineterminator = "\n")
+        csv_writer.writerow(["PhraseId", "Sentiment"]) # write column names
+        for i in range(0, len(train_data_df.index)):
+            csv_writer.writerow([train_data_df["PhraseId"].iloc[i], predictions[i]])
 
 
 if __name__ == '__main__':

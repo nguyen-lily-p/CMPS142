@@ -37,9 +37,6 @@ def trainClassifiers(features, labels):
     
     classArr = classArr.fit(features, labels)
     
-    #predictions = pandas.DataFrame({"Prediction": classArr.predict(features)})
-    #predictions.to_csv(path_or_buf = OUTPUT_PATH, index = False)
-    
     return classArr
 
     
@@ -123,14 +120,12 @@ def main():
 
 
     # test
-    predictions = model.predict(test_feature_set) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
+    predictions_df = pandas.DataFrame(model.predict(test_feature_set)) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
+    predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     print("Accuracy: ", model.score(test_feature_set, test_data_df["Sentiment"].tolist()))# REMOVE BEFORE SUBMISSION
-    with open(args.outFile, mode="w") as out_file:
-        csv_writer = csv.writer(out_file, delimiter = ",", lineterminator = "\n")
-        csv_writer.writerow(["PhraseId", "Sentiment"]) # write column names
-        for i in range(0, len(test_data_df.index)):
-            csv_writer.writerow([test_data_df["PhraseId"].iloc[i], predictions[i]])
-   
+    
+    predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
+    
 
 if __name__ == '__main__':
     main()

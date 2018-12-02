@@ -10,14 +10,17 @@ from sklearn.ensemble import VotingClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
 #nltk.download()
 
 # default file path for training data
 TRAINING_DATA_PATH = "train.csv"
 # default file path for testing data
 TESTING_DATA_PATH = "test.csv"
-# default file path for output
+# default file path for output of predictions
 OUTPUT_PATH = "output.csv"
+# file path for output of performance metrics
+OUTPUT_PERFORMANCE_PATH = "output_performance.txt"
 
 # declares classifies that will be trained and used for testing
 # global so all functions can access
@@ -28,9 +31,12 @@ logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', 
 # initializes array with previously declared classifiers to make voting simpler
 
 
-# trains multiple classifiers with training set, returns accuracy of each algorithm
-# parameter is matrix of occurences of keywords in each phrase
 def trainClassifiers(features, labels):
+    """
+        Trains multiple classifiers with training set
+        Parameters are the features set and the labels of the instances
+        Returns the trained model
+    """
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
             voting = 'hard')
@@ -39,6 +45,37 @@ def trainClassifiers(features, labels):
     
     return classArr
 
+
+def performance_metrics(model, features, labels, output_file):
+    """
+
+    """
+    file = open(output_file, "w")
+		
+    # output performance of individual classifiers
+    classifierList = model.estimators_
+    for classifier in classifierList:
+        name = str(type(classifier))[16:-2]
+        file.write("\n********** CLASSIFIER: " + name + "**********\n")
+        
+        file.write("\nCROSS VALIDATION (CV = 5)\n")
+        file.write("\tAccuracy:  " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "accuracy") + "\n"))
+        file.write("\tPrecision: " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "precision_weighted") + "\n"))
+        file.write("\tRecall:    " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "recall_weighted") + "\n"))
+        file.write("\tF-1 Score: " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "f1_weighted") + "\n"))
+
+        file.write("\nTRAINING SET\n")
+        file.write("\tAccuracy: " + str(classifier.score(features, labels) + "\n"))
+
+    # output performance of VotingClassifier
+    file.write("\n********** CLASSIFIER: VOTING ENSEMBLE **********\n")
+    file.write("\nCROSS VALIDATION (CV = 5)\n")
+    file.write("\tAccuracy: " + str(cross_val_score(model, features, labels, cv = 5, scoring = "accuracy") + "\n"))
+
+    file.write("\nTRAINING SET\n")
+    file.write("\tAccuracy: " + str(model.score(features, labels) + "\n"))
+
+    file.close()
     
 def tokenize(phrase_str):
     """
@@ -90,28 +127,6 @@ def main():
     tfidf = TfidfVectorizer(tokenizer = tokenize)
     train_feature_set = tfidf.fit_transform(train_data_df["Phrase"])
     test_feature_set = tfidf.transform(test_data_df["Phrase"])
-    
-
-    ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
-    # print nice version of sparse matrix
-    #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    #print(feature_set)
-    #feature_names = tfidf.get_feature_names()
-
-    # print word and tfidf score for first 100 documents
-    #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
-    #for idx in range(0, 100):
-    #    feature_index = feature_set[idx,:].nonzero()[1]
-    #    tfidf_scores = zip(feature_index, [feature_set[idx, x] for x in feature_index])
-
-    #    print("\n*** DOCUMENT ", idx, " ***")
-    #    for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
-    #        print(w, " --- ", s)
-
-    # print (# of rows, # of columns) of matrix, i.e. (instances x features)
-    #print("\n(INSTANCES, FEATURES): ", feature_set.shape)
-    ################################################################################
-
 
     # training - send to different algorithms
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
@@ -123,7 +138,8 @@ def main():
     predictions_df = pandas.DataFrame(model.predict(test_feature_set)) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     print("Accuracy: ", model.score(test_feature_set, test_data_df["Sentiment"].tolist()))# REMOVE BEFORE SUBMISSION
-    
+    performance_metrics(model, test_feature_set, test_data_df["Sentiment"].tolist(), OUTPUT_PERFORMANCE_PATH)
+
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
     
 

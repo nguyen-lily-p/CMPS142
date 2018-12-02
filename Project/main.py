@@ -5,11 +5,15 @@
 import argparse, pandas, sys, string, numpy
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 # import scikit-learn functions for classifiers
 from sklearn.ensemble import VotingClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
+from scipy import sparse
+
+
 #nltk.download()
 
 # default file path for training data
@@ -19,6 +23,9 @@ TESTING_DATA_PATH = "test.csv"
 # default file path for output
 OUTPUT_PATH = "output.csv"
 
+NEGATIVE_WORDS_PATH = "negative-words.txt"
+POSITIVE_WORDS_PATH = "positive-words.txt"
+
 # declares classifies that will be trained and used for testing
 # global so all functions can access
 naiveBayesModel = MultinomialNB()
@@ -27,6 +34,10 @@ logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', 
 
 # initializes array with previously declared classifiers to make voting simpler
 
+    # remove punctuation, remove non-alphabetic tokens, stem tokens
+# for i in range(0, phrase_df.size):
+#     phrase_df[i] = [nltk.stem.PorterStemmer().stem(token.translate(mapping)) \
+#             for token in phrase_df[i] if token.translate(mapping).isalpha()]
 
 # trains multiple classifiers with training set, returns accuracy of each algorithm
 # parameter is matrix of occurences of keywords in each phrase
@@ -87,16 +98,77 @@ def main():
         sys.exit(1)
 
 
-    #### preprocessing & feature extraction ####
+    #### preprocessing ####
+    #train_data_df["Phrase"] = preprocess(train_data_df["Phrase"])
+
+    # remove training instances with empty phrase list after preprocessing
+    #index = 0
+    #while index < len(train_data_df.index):
+    #    if not train_data_df["Phrase"].iloc[index]:
+    #        train_data_df = train_data_df.drop(train_data_df.index[index])
+
+    #    index += 1
+    #print(train_data_df["Phrase"])
+
+
+    #### feature extraction ####
+    def get_liwc_features(train_data_df):
+        pass
+    
+    def get_pos_features(train_data_df):
+        pass
+
+    def get_unigram_bow_features(train_data_df):
+        vectorizer = CountVectorizer() 
+        matrix = vectorizer.fit_transform(train_data_df["Phrase"])
+        # print(vectorizer.get_feature_names())
+        # print(feature)
+        return sparse.csr_matrix(matrix)
+
+    # returns a dense matrix of features 
+    def get_word_count_features(train_data_df):
+        negative_words = []
+        with open(NEGATIVE_WORDS_PATH) as file:
+            lines = file.readlines()
+            negative_words = [line.strip() for line in lines]
+        
+        positive_words = []
+        with open(POSITIVE_WORDS_PATH) as file:
+            lines = file.readlines()
+            positive_words = [line.strip() for line in lines] 
+
+        # print(positive_words)
+        dense_matrix = []
+        for phrase in train_data_df["Phrase"]:
+            word_array = tokenize(phrase)
+            # print(word_array)
+            # count number of positive and negative words in each phrase 
+            num_pos = 0
+            num_neg = 0
+            for word in word_array:
+                if(word in positive_words):
+                    num_pos += 1
+                if(word in negative_words):
+                    num_neg +=  1
+            # print("pos " + str(num_pos))
+            # print("neg " + str(num_neg))
+            # add them as tuples to feature vector
+            dense_matrix.append([num_pos, num_neg])
+        sparse_matrix = sparse.csr_matrix(dense_matrix)
+        # print(sparse_matrix)
+        return sparse_matrix
+
+    wc_matrix = get_word_count_features(train_data_df)
+    uni_bow_matrix = get_unigram_bow_features(train_data_df)
+    print(uni_bow_matrix)
+    
     tfidf = TfidfVectorizer(tokenizer = tokenize, min_df = 1)
     tfs = tfidf.fit_transform(train_data_df["Phrase"])
     
-
-    ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
-    # print nice version of sparse matrix
-    #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    #print(tfs)
-    #feature_names = tfidf.get_feature_names()
+    # # print nice version of sparse matrix
+    # print("\nDOCUMENT-TFIDF SPARSE MATRIX")
+    # print(tfs)
+    # feature_names = tfidf.get_feature_names()
 
     # print word and tfidf score for first 100 documents
     #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
@@ -114,8 +186,9 @@ def main():
 
 
     # training - send to different algorithms
-    trainClassifiers(tfs, train_data_df["Sentiment"].tolist())
-    
+    feature_matrix = sparse.hstack([tfs, wc_matrix, uni_bow_matrix])
+    print(feature_matrix)
+    trainClassifiers(feature_matrix, train_data_df["Sentiment"].tolist())
 
     # test
 

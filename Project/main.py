@@ -47,7 +47,6 @@ def trainClassifiers(features, labels):
             voting = 'hard')
     
     classArr = classArr.fit(features, labels)
-    print(classArr.score(features, labels))
     
     return classArr
 
@@ -64,11 +63,11 @@ def tokenize(phrase_str):
     mapping = str.maketrans('', '', string.punctuation)
 
     # remove punctuation, remove non-alphabetic tokens, stem tokens
-    # phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
-    #         if token.translate(mapping).isalpha()]
+    phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
+             if token.translate(mapping).isalpha()]
 
-    phrase = [token.translate(mapping) for token in phrase \
-            if token.translate(mapping).isalpha()]
+    #phrase = [token.translate(mapping) for token in phrase \
+    #        if token.translate(mapping).isalpha()]
 
     return phrase
 
@@ -126,7 +125,8 @@ def get_all_features(train_data, test_data):
     #       sparse.hstack([test_idf_matrix, test_wc_matrix, test_uni_bow_matrix])
     return sparse.hstack([train_idf_matrix, train_uni_bow_matrix]), \
            sparse.hstack([test_idf_matrix, test_uni_bow_matrix])
-    
+
+
 def main():
     #### read in command-line arguments, if any ####
     parser = argparse.ArgumentParser(description = "program to predict the "
@@ -160,17 +160,19 @@ def main():
 
     #compare_models.compare_models(train_data_df)
 
-    # join matrices together
-
-    # training    
+    ### training ###   
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
 
-    # test
+    ### test ###
     predictions_df = pandas.DataFrame(model.predict(test_feature_set))
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
-    performance_metrics.get_performance(model, test_feature_set, test_data_df["Sentiment"].tolist(), args.perfFile)
     
+    # write performance stats to txt file
+    perf_out_file = open(args.perfFile, "w")
+    #performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
+    performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
+    perf_out_file.close()
 
 if __name__ == '__main__':
     main()

@@ -170,8 +170,8 @@ def main():
     
     # write performance stats to txt file
     perf_out_file = open(args.perfFile, "w")
-    #performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
-    performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
+    performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
+    #performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
     perf_out_file.close()
 
 if __name__ == '__main__':

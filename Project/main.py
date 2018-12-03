@@ -144,25 +144,34 @@ def main():
             "output file")
     args = parser.parse_args()
 
+    
     #### read training and testing data into a pandas dataframe ####
     try:
         train_data_df = pandas.read_csv(args.trainFile)
-        test_data_df = pandas.read_csv(args.testFile)
     except FileNotFoundError:
-        print("Error: File does not exist. File must be of type csv")
+        print("Error: Training file does not exist. File must be of type csv")
         sys.exit(1)
     except:
         print("Error: Unknown error occurred trying to read train data file")
         sys.exit(1)
+    try:
+        test_data_df = pandas.read_csv(args.testFile)
+    except FileNotFoundError:
+        print("Error: Testing file does not exist. File must be of type csv")
+        sys.exit(1)
+    except:
+        print("Error: Unknown error occurred trying to read test data file")
+        sys.exit(1)
 
+        
     #### preprocessing & feature extraction ####
     train_feature_set, test_feature_set = get_all_features(train_data_df["Phrase"], test_data_df["Phrase"])
 
-    #compare_models.compare_models(train_data_df)
-
+    
     ### training ###   
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
 
+    
     ### test ###
     predictions_df = pandas.DataFrame(model.predict(test_feature_set))
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
@@ -174,5 +183,6 @@ def main():
     #performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
     perf_out_file.close()
 
+    
 if __name__ == '__main__':
     main()

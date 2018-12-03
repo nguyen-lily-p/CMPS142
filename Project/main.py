@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, compare_models
+import argparse, csv, pandas, sys, string, numpy, compare_models, sklearn.metrics, performance_metrics
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 # import scikit-learn functions for classifiers
@@ -45,37 +45,6 @@ def trainClassifiers(features, labels):
     
     return classArr
 
-
-def performance_metrics(model, features, labels, output_file):
-    """
-
-    """
-    file = open(output_file, "w")
-		
-    # output performance of individual classifiers
-    classifierList = model.estimators_
-    for classifier in classifierList:
-        name = str(type(classifier))[16:-2]
-        file.write("\n********** CLASSIFIER: " + name + "**********\n")
-        
-        file.write("\nCROSS VALIDATION (CV = 5)\n")
-        file.write("\tAccuracy:  " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "accuracy") + "\n"))
-        file.write("\tPrecision: " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "precision_weighted") + "\n"))
-        file.write("\tRecall:    " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "recall_weighted") + "\n"))
-        file.write("\tF-1 Score: " + str(cross_val_score(classifier, features, labels, cv = 5, scoring = "f1_weighted") + "\n"))
-
-        file.write("\nTRAINING SET\n")
-        file.write("\tAccuracy: " + str(classifier.score(features, labels) + "\n"))
-
-    # output performance of VotingClassifier
-    file.write("\n********** CLASSIFIER: VOTING ENSEMBLE **********\n")
-    file.write("\nCROSS VALIDATION (CV = 5)\n")
-    file.write("\tAccuracy: " + str(cross_val_score(model, features, labels, cv = 5, scoring = "accuracy") + "\n"))
-
-    file.write("\nTRAINING SET\n")
-    file.write("\tAccuracy: " + str(model.score(features, labels) + "\n"))
-
-    file.close()
     
 def tokenize(phrase_str):
     """
@@ -107,6 +76,9 @@ def main():
             help = "the path to the .csv file containing the test data")
     parser.add_argument("--out", dest = "outFile", default = OUTPUT_PATH, \
             type = str, help = "the path of the output file")
+    parser.add_argument("--perf", dest = "perfFile", default = \
+            OUTPUT_PERFORMANCE_PATH, type = str, help = "the path of the performance "
+            "output file")
     args = parser.parse_args()
 
 
@@ -138,7 +110,7 @@ def main():
     predictions_df = pandas.DataFrame(model.predict(test_feature_set)) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     print("Accuracy: ", model.score(test_feature_set, test_data_df["Sentiment"].tolist()))# REMOVE BEFORE SUBMISSION
-    performance_metrics(model, test_feature_set, test_data_df["Sentiment"].tolist(), OUTPUT_PERFORMANCE_PATH)
+    performance_metrics.get_performance(model, test_feature_set, test_data_df["Sentiment"].tolist(), args.perfFile)
 
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
     

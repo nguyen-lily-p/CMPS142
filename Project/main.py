@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, compare_models, sklearn.metrics, performance_metrics, word_category_counter
+import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics, word_category_counter
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -45,7 +45,6 @@ def trainClassifiers(features, labels):
             voting = 'hard')
     
     classArr = classArr.fit(features, labels)
-    print(classArr.score(features, labels))
     
     return classArr
 
@@ -62,11 +61,11 @@ def tokenize(phrase_str):
     mapping = str.maketrans('', '', string.punctuation)
 
     # remove punctuation, remove non-alphabetic tokens, stem tokens
-    # phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
-    #         if token.translate(mapping).isalpha()]
+    phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
+             if token.translate(mapping).isalpha()]
 
-    phrase = [token.translate(mapping) for token in phrase \
-            if token.translate(mapping).isalpha()]
+    #phrase = [token.translate(mapping) for token in phrase \
+    #        if token.translate(mapping).isalpha()]
 
     return phrase
 
@@ -154,17 +153,26 @@ def main():
             "output file")
     args = parser.parse_args()
 
+    
     #### read training and testing data into a pandas dataframe ####
     try:
         train_data_df = pandas.read_csv(args.trainFile)
-        test_data_df = pandas.read_csv(args.testFile)
     except FileNotFoundError:
-        print("Error: File does not exist. File must be of type csv")
+        print("Error: Training file does not exist. File must be of type csv")
         sys.exit(1)
     except:
         print("Error: Unknown error occurred trying to read train data file")
         sys.exit(1)
+    try:
+        test_data_df = pandas.read_csv(args.testFile)
+    except FileNotFoundError:
+        print("Error: Testing file does not exist. File must be of type csv")
+        sys.exit(1)
+    except:
+        print("Error: Unknown error occurred trying to read test data file")
+        sys.exit(1)
 
+        
     #### preprocessing & feature extraction ####
     train_feature_set, test_feature_set = get_all_features(train_data_df["Phrase"], test_data_df["Phrase"])
 
@@ -175,8 +183,13 @@ def main():
     predictions_df = pandas.DataFrame(model.predict(test_feature_set[:20000]))
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
-    performance_metrics.get_performance(model, test_feature_set, test_data_df["Sentiment"].tolist(), args.perfFile)
     
+    # write performance stats to txt file
+    perf_out_file = open(args.perfFile, "w")
+    performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
+    #performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
+    perf_out_file.close()
 
+    
 if __name__ == '__main__':
     main()

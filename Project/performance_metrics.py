@@ -9,6 +9,7 @@ def get_performance(model, features, labels, output_file):
     """
 
     """
+    print("in get_performance")
     file = open(output_file, "w")
 		
     ### output performance of individual classifiers ###

@@ -34,11 +34,6 @@ logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', 
 
 # initializes array with previously declared classifiers to make voting simpler
 
-    # remove punctuation, remove non-alphabetic tokens, stem tokens
-# for i in range(0, phrase_df.size):
-#     phrase_df[i] = [nltk.stem.PorterStemmer().stem(token.translate(mapping)) \
-#             for token in phrase_df[i] if token.translate(mapping).isalpha()]
-
 # trains multiple classifiers with training set, returns accuracy of each algorithm
 # parameter is matrix of occurences of keywords in each phrase
 def trainClassifiers(features, labels):
@@ -110,9 +105,6 @@ def get_word_count_features(data):
     return sparse.csr_matrix(dense_matrix)
 
 def get_idf_features(data):
-    # print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    # print(tfs)
-    # feature_names = tfidf.get_feature_names()
     tfidf = TfidfVectorizer(tokenizer = tokenize)
     return tfidf.fit_transform(data["Phrase"])
 
@@ -159,35 +151,12 @@ def main():
 
 
     # join matrices together
-    
-    ######## PRINTING MATRIX OF FEATURE SET -- REMOVE EVENTUALLY ###################
-    # print nice version of sparse matrix
-    #print("\nDOCUMENT-TFIDF SPARSE MATRIX")
-    #print(feature_set)
-    #feature_names = tfidf.get_feature_names()
-
-    # print word and tfidf score for first 100 documents
-    #print("\nWORD AND TFIDF SCORE FOR FIRST 100 DOCUMENTS")
-    #for idx in range(0, 100):
-    #    feature_index = feature_set[idx,:].nonzero()[1]
-    #    tfidf_scores = zip(feature_index, [feature_set[idx, x] for x in feature_index])
-
-    #    print("\n*** DOCUMENT ", idx, " ***")
-    #    for w, s in [(feature_names[i], s) for (i, s) in tfidf_scores]:
-    #        print(w, " --- ", s)
-
-    # print (# of rows, # of columns) of matrix, i.e. (instances x features)
-    #print("\n(INSTANCES, FEATURES): ", feature_set.shape)
-    ################################################################################
 
     # training - send to different algorithms
     
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
-    # print("\nInstances x Features): ", train_feature_set.shape)
-    # print("\nInstances x Features): ", test_feature_set.shape)
 
     # test
-    # print(test_data_df["PhraseId"])
     predictions_df = pandas.DataFrame(model.predict(test_feature_set)) ### REPLACE WITH ACTUAL TEST SET BEFORE SUBMISSION
     print(predictions_df)
     predictions_df = pandas.concat([train_data_df["PhraseId"], predictions_df], axis = 1)

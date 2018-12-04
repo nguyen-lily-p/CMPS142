@@ -83,6 +83,7 @@ liwc_categories =  [
 'Sports', 'TV','Music','Metaphysical issues', 'Physical states and functions', 'Sleeping', 'Grooming']
 
 def get_liwc_features(train_data, test_data):
+    print("getting liwc features")
     train_liwc_matrix = []
     test_liwc_matrix = []
     for phrase in train_data:
@@ -111,30 +112,37 @@ def get_liwc_features(train_data, test_data):
     # print(train_liwc_matrix)
     return sparse.csr_matrix(train_liwc_matrix), sparse.csr_matrix(test_liwc_matrix)
 
-def get_pos_features(data):
-    pass
-
-
 def get_unigram_bow_features(train_data, test_data):
+    print("getting unigram features")
     vectorizer = CountVectorizer() 
     vectorizer = vectorizer.fit(train_data)
     return vectorizer.transform(train_data), vectorizer.transform(test_data)
 
+def get_ngram_features(train_data, test_data):
+    print("getting ngram features")
+    ngram_vectorizer = CountVectorizer(ngram_range=(1, 3))
+    ngram_vectorizer = ngram_vectorizer.fit(train_data)
+    return ngram_vectorizer.transform(train_data), ngram_vectorizer.transform(test_data)
+
 
 def get_idf_features(train_data, test_data):
+    print("getting idf features")
     tfidf = TfidfVectorizer(tokenizer = tokenize)
     tfidf.fit(train_data)
     return tfidf.transform(train_data), tfidf.transform(test_data)
 
 def get_all_features(train_data, test_data):
     #train_wc_matrix, test_wc_matrix = get_word_count_features(train_data, test_data)
-    train_uni_bow_matrix, test_uni_bow_matrix = get_unigram_bow_features(train_data, test_data)
+    # train_uni_bow_matrix, test_uni_bow_matrix = get_unigram_bow_features(train_data, test_data)
     train_idf_matrix, test_idf_matrix = get_idf_features(train_data, test_data)
-    train_liwc_matrix, test_liwc_matrix = get_liwc_features(train_data, test_data)
+    train_ngram_matrix, test_ngram_matrix = get_ngram_features(train_data, test_data)
+    # train_liwc_matrix, test_liwc_matrix = get_liwc_features(train_data, test_data)
     #return sparse.hstack([train_idf_matrix, train_wc_matrix, train_uni_bow_matrix]), \
     #       sparse.hstack([test_idf_matrix, test_wc_matrix, test_uni_bow_matrix])
-    return sparse.hstack([train_idf_matrix, train_uni_bow_matrix, train_liwc_matrix]), \
-           sparse.hstack([test_idf_matrix, test_uni_bow_matrix, test_liwc_matrix])
+    # return sparse.hstack([train_idf_matrix, train_uni_bow_matrix, train_liwc_matrix]), \
+    #        sparse.hstack([test_idf_matrix, test_uni_bow_matrix, test_liwc_matrix])
+    return sparse.hstack([train_idf_matrix, train_ngram_matrix]), \
+        sparse.hstack([test_idf_matrix, test_ngram_matrix])
     
 def main():
     #### read in command-line arguments, if any ####
@@ -175,12 +183,13 @@ def main():
         
     #### preprocessing & feature extraction ####
     train_feature_set, test_feature_set = get_all_features(train_data_df["Phrase"], test_data_df["Phrase"])
+    print("finished getting features")
 
     # training    
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
     print("finished training")
     # test
-    predictions_df = pandas.DataFrame(model.predict(test_feature_set[:20000]))
+    predictions_df = pandas.DataFrame(model.predict(test_feature_set))
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
     

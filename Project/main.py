@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics
+import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics, word_category_counter
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -25,14 +25,12 @@ OUTPUT_PATH = "output.csv"
 # default file path for output of performance metrics
 OUTPUT_PERFORMANCE_PATH = "output_performance.txt"
 
-NEGATIVE_WORDS_PATH = "negative-words.txt"
-POSITIVE_WORDS_PATH = "positive-words.txt"
 
 # declares classifies that will be trained and used for testing
 # global so all functions can access
 naiveBayesModel = MultinomialNB()
 linearSVCModel = LinearSVC()
-logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=10000)
+logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
 
 # trains multiple classifiers with training set, returns accuracy of each algorithm
 # parameter is matrix of occurences of keywords in each phrase
@@ -44,7 +42,7 @@ def trainClassifiers(features, labels):
     """
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
-            voting = 'hard')
+            voting = 'hard', weights = [1, 5, 3])
 
     classArr = classArr.fit(features, labels)
     
@@ -71,46 +69,56 @@ def tokenize(phrase_str):
 
     return phrase
 
-"""
-def get_liwc_features(data):
-    pass
+liwc_categories =  [
+'Total Pronouns', 'Total Function Words', 'Personal Pronouns', 'First Person Singular', 'First Person Plural', 
+'Second Person', 'Third Person Singular', 'Third Person Plural', ' Impersonal Pronouns', 'Articles', 'Common Verbs',
+'Auxiliary Verbs', 'Past Tense', 'Present Tense', 'Future Tense', 'Adverbs', 'Prepositions', 'Conjunctions',
+'Negations', 'Quantifiers', 'Number', 'Swear Words', 'Social Processes', 'Family', 'Friends', 'Humans',
+'Affective Processes', 'Positive Emotion', 'Negative Emotion', 'Anxiety', 'Anger', 'Sadness', 'Cognitive Processes',
+'Insight', 'Causation', 'Discrepancy', 'Tentative', 'Certainty', 'Inhibition', 'Inclusive', 'Exclusive',
+'Perceptual Processes', 'See', 'Hear', 'Feel', 'Biological Processes', 'Body', 'Health', 'Sexual', 'Ingestion',
+'Relativity', 'Motion', 'Space', 'Time', 'Work', 'Achievement', 'Leisure', 'Home', 'Money', 'Religion', 'Death',
+'Assent', 'Nonfluencies', 'Fillers', 'Total first person', 'Total third person', 'Positive feelings',
+'Optimism and energy', 'Communication', 'Other references to people', 'Up', 'Down', 'Occupation', 'School',
+'Sports', 'TV','Music','Metaphysical issues', 'Physical states and functions', 'Sleeping', 'Grooming']
 
-def get_pos_features(data):
-    pass
-"""
+def get_liwc_features(train_data, test_data):
+    print("getting liwc features")
+    train_liwc_matrix = []
+    test_liwc_matrix = []
+    for phrase in train_data:
+        liwc_scores = word_category_counter.score_text(phrase)
+        feature_vector = []
+        for key in liwc_categories:
+            if key in liwc_scores.keys():
+                # print(key)
+                # print(liwc_scores[key])
+                feature_vector.append(liwc_scores[key])
+            else:
+                feature_vector.append(0)
+        # print(feature_vector)
+        train_liwc_matrix.append(feature_vector)
+    for phrase in test_data:
+        liwc_scores = word_category_counter.score_text(phrase)
+        feature_vector = []
+        for key in liwc_categories:
+            if key in liwc_scores.keys():
+                # print(key)
+                # print(liwc_scores[key])
+                feature_vector.append(liwc_scores[key])
+            else:
+                feature_vector.append(0)
+        test_liwc_matrix.append(feature_vector)
+    # print(train_liwc_matrix)
+    return sparse.csr_matrix(train_liwc_matrix), sparse.csr_matrix(test_liwc_matrix)
+  
 
-def get_bigram_bow_features(train_data, test_data):
-    vectorizer = CountVectorizer(stop_words = "english", ngram_range = (1, 2)) 
-    vectorizer = vectorizer.fit(train_data)
-    return vectorizer.transform(train_data), vectorizer.transform(test_data)
+def get_ngram_features(train_data, test_data):
+    print("getting ngram features")
+    ngram_vectorizer = CountVectorizer(ngram_range=(1, 3))
+    ngram_vectorizer = ngram_vectorizer.fit(train_data)
+    return ngram_vectorizer.transform(train_data), ngram_vectorizer.transform(test_data)
 
-"""
-# returns a dense matrix of features 
-def get_word_count_features(data):
-    negative_words = []
-    with open(NEGATIVE_WORDS_PATH) as file:
-        lines = file.readlines()
-        negative_words = [line.strip() for line in lines]
-    
-    positive_words = []
-    with open(POSITIVE_WORDS_PATH) as file:
-        lines = file.readlines()
-        positive_words = [line.strip() for line in lines] 
-
-    dense_matrix = []
-    for phrase in data["Phrase"]:
-        word_array = tokenize(phrase)
-        # count number of positive and negative words in each phrase 
-        num_pos = 0
-        num_neg = 0
-        for word in word_array:
-            if(word in positive_words):
-                num_pos += 1
-            if(word in negative_words):
-                num_neg +=  1
-        dense_matrix.append([num_pos, num_neg])
-    return sparse.csr_matrix(dense_matrix)
-"""
 
 def get_idf_features(train_data, test_data):
     tfidf = TfidfVectorizer(ngram_range = (1, 2))
@@ -119,13 +127,12 @@ def get_idf_features(train_data, test_data):
 
 def get_all_features(train_data, test_data):
     #train_wc_matrix, test_wc_matrix = get_word_count_features(train_data, test_data)
-    train_bigram_bow_matrix, test_bigram_bow_matrix = get_bigram_bow_features(train_data, test_data)
     train_idf_matrix, test_idf_matrix = get_idf_features(train_data, test_data)
-    #return sparse.hstack([train_idf_matrix, train_wc_matrix, train_uni_bow_matrix]), \
-    #       sparse.hstack([test_idf_matrix, test_wc_matrix, test_uni_bow_matrix])
-    return sparse.hstack([train_idf_matrix, train_bigram_bow_matrix]), \
-           sparse.hstack([test_idf_matrix, test_bigram_bow_matrix])
-
+    train_ngram_matrix, test_ngram_matrix = get_ngram_features(train_data, test_data)
+    # train_liwc_matrix, test_liwc_matrix = get_liwc_features(train_data, test_data)
+    return sparse.hstack([train_idf_matrix, train_ngram_matrix]), \
+        sparse.hstack([test_idf_matrix, test_ngram_matrix])
+    
 
 def main():
     #### read in command-line arguments, if any ####
@@ -166,13 +173,12 @@ def main():
         
     #### preprocessing & feature extraction ####
     train_feature_set, test_feature_set = get_all_features(train_data_df["Phrase"], test_data_df["Phrase"])
+    print("finished getting features")
 
-    
-    ### training ###   
+    # training    
     model = trainClassifiers(train_feature_set, train_data_df["Sentiment"].tolist())
-
-    
-    ### test ###
+    print("finished training")
+    # test
     predictions_df = pandas.DataFrame(model.predict(test_feature_set))
     predictions_df = pandas.concat([test_data_df["PhraseId"], predictions_df], axis = 1)
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)

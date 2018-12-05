@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, compare_models, sklearn.metrics, performance_metrics
+import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -45,7 +45,7 @@ def trainClassifiers(features, labels):
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
             voting = 'hard')
-    
+
     classArr = classArr.fit(features, labels)
     
     return classArr
@@ -79,8 +79,8 @@ def get_pos_features(data):
     pass
 """
 
-def get_unigram_bow_features(train_data, test_data):
-    vectorizer = CountVectorizer() 
+def get_bigram_bow_features(train_data, test_data):
+    vectorizer = CountVectorizer(stop_words = "english", ngram_range = (1, 2)) 
     vectorizer = vectorizer.fit(train_data)
     return vectorizer.transform(train_data), vectorizer.transform(test_data)
 
@@ -113,18 +113,18 @@ def get_word_count_features(data):
 """
 
 def get_idf_features(train_data, test_data):
-    tfidf = TfidfVectorizer(tokenizer = tokenize)
+    tfidf = TfidfVectorizer(ngram_range = (1, 2))
     tfidf.fit(train_data)
     return tfidf.transform(train_data), tfidf.transform(test_data)
 
 def get_all_features(train_data, test_data):
     #train_wc_matrix, test_wc_matrix = get_word_count_features(train_data, test_data)
-    train_uni_bow_matrix, test_uni_bow_matrix = get_unigram_bow_features(train_data, test_data)
+    train_bigram_bow_matrix, test_bigram_bow_matrix = get_bigram_bow_features(train_data, test_data)
     train_idf_matrix, test_idf_matrix = get_idf_features(train_data, test_data)
     #return sparse.hstack([train_idf_matrix, train_wc_matrix, train_uni_bow_matrix]), \
     #       sparse.hstack([test_idf_matrix, test_wc_matrix, test_uni_bow_matrix])
-    return sparse.hstack([train_idf_matrix, train_uni_bow_matrix]), \
-           sparse.hstack([test_idf_matrix, test_uni_bow_matrix])
+    return sparse.hstack([train_idf_matrix, train_bigram_bow_matrix]), \
+           sparse.hstack([test_idf_matrix, test_bigram_bow_matrix])
 
 
 def main():
@@ -180,7 +180,7 @@ def main():
     # write performance stats to txt file
     perf_out_file = open(args.perfFile, "w")
     performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
-    #performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
+    performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
     perf_out_file.close()
 
     

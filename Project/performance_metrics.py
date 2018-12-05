@@ -68,9 +68,9 @@ def get_performance_cv(model, features, labels, file, cv_val = 5):
     for classifier in classifierList:
         name = str(type(classifier))[16:-2]
         file.write("\n********** CLASSIFIER: " + name + "**********\n")
-        file.write("\tAccuracy:  " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "accuracy")) + "\n")
-        file.write("\tPrecision: " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "precision_weighted")) + "\n")
-        file.write("\tRecall:    " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "recall_weighted")) + "\n")
+        #file.write("\tAccuracy:  " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "accuracy")) + "\n")
+        #file.write("\tPrecision: " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "precision_weighted")) + "\n")
+        #file.write("\tRecall:    " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "recall_weighted")) + "\n")
         file.write("\tF-1 Score: " + str(cross_val_score(classifier, features, labels, cv = cv_val, scoring = "f1_weighted")) + "\n") 
 
     file.write("\n************************************************************\n")

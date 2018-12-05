@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 
 def get_performance_train(model, features, labels, file, class_performance = False):
+    print("in get_performance")
     file.write("\n******************** TRAINING SET ********************\n")
     
     # performance of individual classifiers

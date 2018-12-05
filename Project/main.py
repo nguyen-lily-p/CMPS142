@@ -3,7 +3,7 @@
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
 import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics, word_category_counter
-from nltk.stem.porter import PorterStemmer
+from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 # import scikit-learn functions for classifiers
@@ -29,8 +29,10 @@ OUTPUT_PERFORMANCE_PATH = "output_performance.txt"
 # declares classifies that will be trained and used for testing
 # global so all functions can access
 naiveBayesModel = MultinomialNB()
-linearSVCModel = LinearSVC()
-logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
+linearSVCModel = LinearSVC(penalty = 'l1', dual = False)
+logRegModel = LogisticRegression(C = 1.5, solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
+#linearSVCModel = LinearSVC()
+#logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
 
 # trains multiple classifiers with training set, returns accuracy of each algorithm
 # parameter is matrix of occurences of keywords in each phrase
@@ -43,9 +45,8 @@ def trainClassifiers(features, labels):
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
             voting = 'hard', weights = [1, 5, 3])
-
-    classArr = classArr.fit(features, labels)
     
+    classArr = classArr.fit(features, labels)
     return classArr
 
     
@@ -61,11 +62,8 @@ def tokenize(phrase_str):
     mapping = str.maketrans('', '', string.punctuation)
 
     # remove punctuation, remove non-alphabetic tokens, stem tokens
-    phrase = [PorterStemmer().stem(token.translate(mapping)) for token in phrase \
+    phrase = [WordNetLemmatizer().lemmatize(token.translate(mapping)) for token in phrase \
              if token.translate(mapping).isalpha()]
-
-    #phrase = [token.translate(mapping) for token in phrase \
-    #        if token.translate(mapping).isalpha()]
 
     return phrase
 
@@ -115,13 +113,14 @@ def get_liwc_features(train_data, test_data):
 
 def get_ngram_features(train_data, test_data):
     print("getting ngram features")
-    ngram_vectorizer = CountVectorizer(ngram_range=(1, 3))
+    #ngram_vectorizer = CountVectorizer(tokenizer = tokenize, ngram_range=(1, 3))
+    ngram_vectorizer = CountVectorizer(ngram_range = (1, 3))
     ngram_vectorizer = ngram_vectorizer.fit(train_data)
     return ngram_vectorizer.transform(train_data), ngram_vectorizer.transform(test_data)
 
 
 def get_idf_features(train_data, test_data):
-    tfidf = TfidfVectorizer(ngram_range = (1, 2))
+    tfidf = TfidfVectorizer(tokenizer = tokenize, ngram_range = (1, 2))
     tfidf.fit(train_data)
     return tfidf.transform(train_data), tfidf.transform(test_data)
 
@@ -184,10 +183,10 @@ def main():
     predictions_df.to_csv(path_or_buf = args.outFile, header = ["PhraseId", "Sentiment"], index = False)
     
     # write performance stats to txt file
-    perf_out_file = open(args.perfFile, "w")
-    performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
-    performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
-    perf_out_file.close()
+    #perf_out_file = open(args.perfFile, "w")
+    #performance_metrics.get_performance_train(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, True)
+    #performance_metrics.get_performance_cv(model, train_feature_set, train_data_df["Sentiment"].tolist(), perf_out_file, 3)
+    #perf_out_file.close()
 
     
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ from scipy import sparse
 # default file path for training data
 TRAINING_DATA_PATH = "train.csv"
 # default file path for testing data
-TESTING_DATA_PATH = "test.csv"
+TESTING_DATA_PATH = "testset_1.csv"
 # default file path for output of predictions
 OUTPUT_PATH = "output.csv"
 # default file path for output of performance metrics

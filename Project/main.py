@@ -42,7 +42,7 @@ def trainClassifiers(features, labels):
     """
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
-            voting = 'hard')
+            voting = 'hard', weights = [1, 5, 3])
     
     classArr = classArr.fit(features, labels)
     

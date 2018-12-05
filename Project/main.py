@@ -2,7 +2,7 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, compare_models, sklearn.metrics, performance_metrics
+import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics
 from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -44,7 +44,7 @@ def trainClassifiers(features, labels):
     """
     # trains each classifier on given training set
     classArr = VotingClassifier(estimators = [('NB', naiveBayesModel), ('linSVC', linearSVCModel), ('LR', logRegModel)], \
-            voting = 'hard')
+            voting = 'hard', weights = [1, 5, 3])
     
     classArr = classArr.fit(features, labels)
     

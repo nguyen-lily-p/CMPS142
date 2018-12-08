@@ -2,11 +2,10 @@
 # Colin Maher    - 1432169 - csmaher@ucsc.edu
 # Lily Nguyen    - 1596857 - lnguye78@ucsc.edu
 
-import argparse, csv, pandas, sys, string, numpy, sklearn.metrics, performance_metrics, word_category_counter
+import argparse, pandas, sys, string, numpy, sklearn.metrics, performance_metrics, word_category_counter
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
-# import scikit-learn functions for classifiers
 from sklearn.ensemble import VotingClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
@@ -14,7 +13,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from scipy import sparse
 
-#nltk.download()
+#nltk.download() # uncomment this line to automatically install NLTK library
+
 
 # default file path for training data
 TRAINING_DATA_PATH = "train.csv"
@@ -31,15 +31,11 @@ OUTPUT_PERFORMANCE_PATH = "output_performance.txt"
 naiveBayesModel = MultinomialNB()
 linearSVCModel = LinearSVC(penalty = 'l1', dual = False)
 logRegModel = LogisticRegression(C = 1.5, solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
-#linearSVCModel = LinearSVC()
-#logRegModel = LogisticRegression(solver = 'lbfgs', multi_class = 'multinomial', random_state = 1, max_iter=1000)
 
-# trains multiple classifiers with training set, returns accuracy of each algorithm
-# parameter is matrix of occurences of keywords in each phrase
 def trainClassifiers(features, labels):
     """
         Trains multiple classifiers with training set
-        Parameters are the features set and the labels of the instances
+        Parameters are the features set matrix and the labels of the instances
         Returns the trained model
     """
     # trains each classifier on given training set
@@ -54,7 +50,7 @@ def tokenize(phrase_str):
     """
         Performs tokenization and some preprocessing operations on text data.
         Converts a phrase into a list of words, removes punctuation, removes
-            non-alphabetic tokens, and stems the tokens
+            non-alphabetic tokens, and lemmatizes the tokens
         Returns the list of tokens
     """
     phrase = phrase_str.split(' ') # tokenize string by space character
@@ -66,6 +62,7 @@ def tokenize(phrase_str):
              if token.translate(mapping).isalpha()]
 
     return phrase
+
 
 liwc_categories =  [
 'Total Pronouns', 'Total Function Words', 'Personal Pronouns', 'First Person Singular', 'First Person Plural', 
@@ -81,6 +78,10 @@ liwc_categories =  [
 'Sports', 'TV','Music','Metaphysical issues', 'Physical states and functions', 'Sleeping', 'Grooming']
 
 def get_liwc_features(train_data, test_data):
+    """
+        Creates a LIWC feature extractor.
+        NOTE: this function is currently not being used in this program.
+    """
     print("getting liwc features")
     train_liwc_matrix = []
     test_liwc_matrix = []
@@ -112,19 +113,41 @@ def get_liwc_features(train_data, test_data):
   
 
 def get_ngram_features(train_data, test_data):
+    """
+        Creates a bag of words unigram/bigram feature extractor.
+        Fits the extractor to the training data, then applies the extractor to both
+            the training data and the test data.
+        Parameters are the training instances and testing instances (just the text phrases)
+            as Series.
+        Returns the extracted feature sets of the training and test data, as matrices.
+    """
     print("getting ngram features")
-    #ngram_vectorizer = CountVectorizer(tokenizer = tokenize, ngram_range=(1, 3))
-    ngram_vectorizer = CountVectorizer(ngram_range = (1, 3))
+    ngram_vectorizer = CountVectorizer(ngram_range = (1, 2))
     ngram_vectorizer = ngram_vectorizer.fit(train_data)
     return ngram_vectorizer.transform(train_data), ngram_vectorizer.transform(test_data)
 
 
 def get_idf_features(train_data, test_data):
+    """
+        Creates a tfidf unigram/bigram feature extractor.
+        Fits the extractor to the training data, then applies the extractor to both
+            the training data and the test data.
+        Parameters are the training instances and testing instances (just the text phrases)
+            as Series.
+        Returns the extracted feature sets of the training and test data, as matrices.
+    """
     tfidf = TfidfVectorizer(tokenizer = tokenize, ngram_range = (1, 2))
     tfidf.fit(train_data)
     return tfidf.transform(train_data), tfidf.transform(test_data)
 
+
 def get_all_features(train_data, test_data):
+    """
+        Calls all feature extractor methods to obtain the different feature sets.
+        Parameters are the training instances and testing instances (just the text phrases)
+            as Series.
+        Returns the combined extracted feature sets of the training and test data, as a matrix.
+    """
     #train_wc_matrix, test_wc_matrix = get_word_count_features(train_data, test_data)
     train_idf_matrix, test_idf_matrix = get_idf_features(train_data, test_data)
     train_ngram_matrix, test_ngram_matrix = get_ngram_features(train_data, test_data)

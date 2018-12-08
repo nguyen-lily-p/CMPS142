@@ -13,18 +13,30 @@ a voting ensemble of three classifers: Multinomial Naive Bayes, Logistic Regress
 K-Fold Cross Validation was also used to check model's ability to generalize instances.
 
 ~Program Instructions~
-Open main.py in a text editor and change file paths as needed before running: 
-   - TRAINING_DATA_PATH -> training file
-   - TESTING_DATA_PATH -> testing file
-   - OUTPUT_PATH -> predictions file
-   - OUTPUT_PERFORMANCE_PATH -> performance metrics file
+To run the program, type the following into the command line:
+      $ python main.py
+      
+There optionals that can be specified or change through the command line or by editing the program itself:
+   If running by command line, the following options and arguments have been implemented:
+     - '--train [trainFile]': sets training file to specified path; must be a csv file
+            the default value is "train.csv"
+     - '--test [testFile]': sets test file to specified path; must be a csv file
+            the default value is "test.csv"
+      - '--out [outFile]': sets output file to specified path; must be a csv file
+            the default value is "output.csv"
+      - '--perf [perfFile]': sets performance metrics output to specified path; must be a text file
+            the default value is "output_performance.txt"
+   OR
 
-OR
+   Open main.py in a text editor and change file path variables, listed near the top, as needed before running: 
+      - TRAINING_DATA_PATH -> training data file path
+      - TESTING_DATA_PATH -> testing data file path
+      - OUTPUT_PATH -> predictions output file path
+      - OUTPUT_PERFORMANCE_PATH -> performance metrics output file path
 
-If running by command line, the following arguments have been implemented:
-   - '--train [trainFile]': sets training file to specified path
-   - '--test [testFile]': sets test file to specified path
-   - '--out [outFile]': sets output file to specified path
-   - '--perf [perfFile]': sets performance metrics output to specified path
 
-To run performance metrics script, uncomment code at bottom of main function. 
+To run performance metrics script, uncomment code at bottom of main function.
+Note that this will make the program's runtime about 10 minutes, and has therefore been commented out as default.
+
+This program requires the Natural Languages Toolkit (NLTK) library, and must be downloaded before running the program.
+The user can install it directly, or simply uncomment the line "nltk.download()" near the top of the main.py script.

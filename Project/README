@@ -4,6 +4,27 @@ Lily Nguyen    * 1596857 * lnguye78@ucsc.edu
 
 CMPS 142: Machine Learning
 Project: Sentiment Analysis on Movie Reviews
-27 November 2018
+07 December 2018
 
-[project description]
+~Project Description~
+Our model first uses TFIDF, lemmatization, and n-gram methods to pre-process 
+and extract features from the training and testing data before sending it to 
+a voting ensemble of three classifers: Multinomial Naive Bayes, Logistic Regression, and Linear SVC.
+K-Fold Cross Validation was also used to check model's ability to generalize instances.
+
+~Program Instructions~
+Open main.py in a text editor and change file paths as needed before running: 
+   - TRAINING_DATA_PATH -> training file
+   - TESTING_DATA_PATH -> testing file
+   - OUTPUT_PATH -> predictions file
+   - OUTPUT_PERFORMANCE_PATH -> performance metrics file
+
+OR
+
+If running by command line, the following arguments have been implemented:
+   - '--train [trainFile]': sets training file to specified path
+   - '--test [testFile]': sets test file to specified path
+   - '--out [outFile]': sets output file to specified path
+   - '--perf [perfFile]': sets performance metrics output to specified path
+
+To run performance metrics script, uncomment code at bottom of main function. 
